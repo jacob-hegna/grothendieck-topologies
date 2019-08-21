@@ -1,0 +1,1279 @@
+\documentclass{amsart}
+
+
+\usepackage[utf8]{inputenc}
+\usepackage{color}
+\usepackage{hyperref}
+\usepackage{tikz-cd}
+\usepackage{mathtools}
+\usepackage{csquotes}
+\usepackage{tikz}
+\usepackage{enumerate}
+\usetikzlibrary{arrows}
+
+\newcommand{\ds}[1]{\ensuremath{ \displaystyle{#1} }}
+
+\title{Topologies on Schemes}
+\author{Jacob Hegna}
+\date{\today}
+
+\newcommand{\Zz}{\mathbb{Z}}
+\newcommand{\Gg}{\mathbb{G}}
+\newcommand{\Hh}{\mathbb{H}}
+\newcommand{\Top}{\mathbf{Top}}
+\newcommand{\Sch}{\mathbf{Sch}}
+\newcommand{\Aff}{\mathbf{Aff}}
+\newcommand{\Ring}{\mathbf{Ring}}
+\newcommand{\Set}{\mathbf{Set}}
+\newcommand{\Sh}{\mathbf{Sh}}
+\newcommand{\Ab}{\mathbf{Ab}}
+\newcommand{\PAb}{\mathbf{PAb}}
+
+\DeclareMathOperator{\Zar}{Zar}
+\DeclareMathOperator{\Fun}{Fun}
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\Cl}{Cl}
+\DeclareMathOperator{\St}{St}
+\DeclareMathOperator{\link}{link}
+\DeclareMathOperator{\Sub}{Sub}
+\DeclareMathOperator{\Spec}{Spec}
+\DeclareMathOperator{\Ann}{Ann}
+\DeclareMathOperator{\Mod}{Mod}
+\DeclareMathOperator{\mmod}{mod}
+\DeclareMathOperator{\coker}{coker}
+\DeclareMathOperator{\Comm}{Comm}
+\DeclareMathOperator{\conv}{conv}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\Ext}{Ext}
+\DeclareMathOperator{\Tor}{Tor}
+\DeclareMathOperator{\Gr}{Gr}
+\DeclareMathOperator{\Hom}{Hom}
+\DeclareMathOperator{\im}{im}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{remark}[theorem]{Remark}
+\theoremstyle{remark}
+
+\newcommand{\abs}[1] {
+  \left| #1 \right|}
+
+\newcommand{\norm}[1] {
+  \left| \abs{#1} \right|}
+
+\newcommand\restr[2]{{% we make the whole thing an ordinary symbol
+  \left.\kern-\nulldelimiterspace % automatically resize the bar with \right
+  #1 % the function
+  \vphantom{|} % pretend it's a little taller at normal size
+  \right|_{#2} % this is the delimiter
+  }}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+    This short note aims to be a readable exposition of the basics of
+    alternative (Grothendieck) (pre)topologies on the category of schemes.
+    Proofs are provided where they provide intuition. Definitions are provided
+    for all material one would not likely encounter in an introductory
+    commutative algebra and geometry course, which makes the intended audience
+    graduate students who have finished these courses.
+\end{abstract}
+
+\tableofcontents
+
+\section{Introduction}
+
+Often, when dealing with a geometric object $X$, one studies its properties by
+endowing it with some topology and computing invariants
+$H^\ast_{\text{singular}}$. This is useful, for instance, in distinguishing
+various affine spaces. Endowed with the standard metric topology, we have that
+\[
+    H_{\text{singular}}^i(\mathbb{C}^n \setminus \{p\}, \Zz) =
+    \begin{cases}
+        \Zz, \quad i = 2n \\
+        0, \quad \text{else}
+    \end{cases},
+\]
+for any $p \in \mathbb{C}^n$. This implies that there is no homeomorphism from
+$\mathbb{C}^n$ to $\mathbb{C}^m$ if $m \neq n$. We would like to use similar
+invariants to study objects in other categories, namely $\Sch$. Unfortunately,
+the singular invariants are not well-behaved in the Zariski topology. Namely,
+the singular invariants of a scheme $X$ factor through the forgetful functor to
+$\mathbf{Top}$, but this implies $H^\ast_\text{singular}(\mathbb{A}^1) =
+H^\ast_\text{singular}(\mathbb{P}^1)$ as the Zariski topology of the projective
+and affine line are each simply the cofinite topology (over any closed field).
+Indeed, the situation is quite bad for studying any purely topological
+invariants of a scheme, which is demonstrated by the following proposition.
+
+\begin{proposition}
+    Let $k$ be an algebraically closed field of cardinality greater than or
+    equal to $\abs{\mathbb{R}}$ and let $X$ be an irreducible variety over $k$.
+    Then, $X$ is topologically contractible.
+\end{proposition}
+
+Thus, it is clear that the elementary tools afforded to us by algebraic topology
+will not suffice. Instead, we turn to sheaf cohomology: given $\mathcal{F} \in
+\Ab(X)$, it is a result of Grothendieck that there exists an injective
+resolution of $\mathcal{F}$. We apply global sections to this resolution, and
+take its cohomology. These groups, $H^i(X, \mathcal{F})$ are useful invariants
+of a scheme. For instance, the vanishing of these groups in every dimension for
+$\mathcal{F}$ quasicoherent is equivalent to $X = \Spec(R)$.  However, these
+groups are not quite sufficient for our needs. For instance, the cohomology of
+projective space with coefficients in any constant sheaf vanishes, which is not
+analogous to the singular case:
+$H^{2i}_{\text{singular}}(\mathbb{P}^n(\mathbb{C}), \Zz_p) = \Zz_p$ if and only
+if $i = n$. This expository paper aims to develop a cohomology theory which
+captures this behavior.
+
+\section{Topologies on categories}
+
+The end goal of this paper is to develop a cohomology theory that more closely
+models cohomology in the analytic category. Seeing as (Zariski) sheaf cohomology
+satisfies many desireable properties, it is natural to consider ways to
+generalize this that preserve the nice theoretical properties of Zariski
+cohomology while also yielding the results we want, particularly on projective
+space.
+
+\subsection{Pretopologies}
+
+\begin{definition}
+    A \textit{Grothendieck pretopology} on a category $\mathcal{C}$ equipped
+    with fiber products is a set of distinguished sets of morphisms $\{X_\alpha
+    \to X\}_{\alpha \in \Lambda}$ called \textit{coverings} such that:
+    \begin{enumerate}
+        \item Every isomorphism is a covering.
+        \item If $\{X_\alpha \to X\}_{\alpha \in \Lambda}$ is a covering and,
+            for each $\alpha$, $\{Y_{\alpha \beta} \to X_\alpha\}_{\beta \in
+                \Gamma}$ is a covering, then $\{Y_{\alpha \beta} \to
+            X\}_{(\alpha, \beta) \in \Lambda \times \Gamma}$ is a covering.
+        \item If $Y \to X$ is a morphism
+            and $\{X_\alpha \to X\}_{\alpha \in
+                \Lambda}$ is a covering, then $\{X_\alpha \times_{X} Y \to
+            Y\}_{\alpha \in \Lambda}$ is a covering.
+    \end{enumerate}
+    If $\{X_\alpha \to X\}_{\alpha \in \Lambda}$ is a covering, we say
+    $\{X_\alpha\}$ \textit{covers} $X$.
+\end{definition}
+
+Observe that we require that each collection is indeed a set---for now, note
+that this is nontrivial. Given a category $\mathcal{C}$ with fibre products and
+where the collection of objects is a set and the collection $\Hom(X, Y)$ is a
+set, we automatically have the following:
+
+\begin{proposition}
+    Given the assumptions above, the following two desciptions of coverings
+    define Grothendieck pretopologies on $\mathcal{C}$:
+    \begin{enumerate}
+        \item $\{\phi : X \to Y\}$ where $\phi$ is an isomorphism.
+
+        \item $\{\psi : X \to Y\}$ where $\psi \in \Hom(X, Y)$.
+    \end{enumerate}
+    We say the first is the \textit{discrete} pretopology and the second is the
+    \textit{indiscrete} pretopology.
+\end{proposition}
+
+\begin{proof}
+    Each automatically satisfies the first axiom of a Grothendieck pretopology.
+    The indiscrete pretopology trivially satisfies the second and third axioms
+    automatircally. Isomorphisms compose to isomorphisms, so the discrete
+    pretopology satisfies the second axiom. For the third axiom, consider that
+    if $X' \to X$ is an isomorphism and $Y \to X$ a morphism, then $Y \times_X
+    X' = Y \times_X X = Y$, so $\{Y \times_X X' \to Y\}$ is a covering.
+\end{proof}
+
+\subsection{Sites}
+
+\begin{definition}
+    A \textit{site} is a pair $(\mathcal{C}, \Cov(\mathcal{C}))$ where
+    $\mathcal{C}$ is a category and $\Cov(\mathcal{C})$ is a Grothendieck
+    pretopology on $\mathcal{C}$.
+\end{definition}
+
+For any topological space $X$, we define the (little) Zariski site on $X$ to be the
+category whose objects are open subsets of $X$ and morphisms are inclusions of
+open sets, equipped with the indiscrete pretopology. It is denoted
+$X_{\text{Zar}}$. We define the big Zariski site of $X$ to be the comma category
+$\Top/X$ equipped with the pretopology consisting of families of open immersions
+sharing a common codomain, whose union of images equal the codomain. Recall an
+\textit{open immersion} of topological spaces is a morphism which is open and a
+homeomorphism on its image.
+
+Unfortunately, the Zariski sites on a scheme $X$ are not recovered by the
+forgetful functor $\Sch \to \Top$. However, the sites are defined analogously
+as the previous case. The little Zariski site of $X$, denoted $X_{\text{\'et}}$
+is the category whose objects are schemes $Y$ over $X$ whose structure morphism
+is an open immersion. The big Zariski site, denoted $(\Sch/X)_{\text{\'et}}$ is
+defined as the category $\Sch/X$ with the Zariski topology.  In each case, the
+coverings are families of open immersions whose image set-theoretically cover
+$X$.
+
+In general, given a ``nice'' class of morphisms $\tau$ and a scheme $X$, we
+define the \textit{little $\tau$-site} to be the category whose objects are
+schemes over $X$ whose structure morphism is $\tau$, and coverings are families
+of $\tau$-morphisms whose image set theoretically cover $X$. The \textit{big
+    $\tau$-site} is defined as the category $\Sch/X$ with the same notion of
+covering as in the little site. We denote the little site by $X_\tau$ and the
+big site by $(\Sch/X)_\tau$.
+
+Generally, the big site will reveal more information about the underlying scheme
+$X$, but will pose more technical problems. The little site will behave more
+closely to objects in classical geometry.
+
+\begin{remark}
+    There is an obvious set-theoretic problem here if we work with the naive
+    definitions of $\Top$ and $\Sch$ (the collection of objects is indeed a
+    proper class), however this will be resolved in a later section.
+\end{remark}
+
+\begin{remark}
+    In older texts (namely EGA and SGA), the big and small sites are referred to
+    as the \textit{gros} and \textit{petit} site, respectively.
+\end{remark}
+
+\begin{example}
+    Let $G$ be a group and denote by $\mathcal{T}_G$ the category of $G$-sets.
+    Let coverings in this category be families of $G$-equivariant maps with
+    shared image such that the family set-theoretically covers this image. In
+    other words, a family of $G$-equivariant maps $\{U_i \to U\}$ is a covering
+    iff $\bigcup U_i = U$.
+    
+    This is a well-known example of a site, and this particular telling of the
+    story follows that of
+    \cite[\href{https://stacks.math.columbia.edu/tag/03NP}{Tag
+        03NP}]{stacks-project}.
+\end{example}
+
+\section{Sheaves}
+
+For this section, we assume all categories enjoy all finite fibre products. This
+is not strictly necessary, but makes the exposition straightfoward. A
+\textit{presheaf} on a category $\mathcal{C}$ is an object of the functor
+category $\Fun(\mathcal{C}^{\text{op}}, \Set)$. The category of presheaves on
+$\mathcal{C}$ should be seen as the canonical co-completion of $\mathcal{C}$.
+
+\begin{definition}
+    Let $\mathcal{C}$ be a site and $\mathcal{F}$ a presheaf on $\mathcal{C}$.
+    We say that $\mathcal{F}$ is a \textit{sheaf} if, for every covering $\{U_i
+    \to U\}_{i \in I}$, the following diagram
+    \[
+        \begin{tikzcd}
+            \mathcal{F}(U) \ar[r] &
+            \prod_{i \in I} \mathcal{F}(U_i) \ar[r, shift left=0.75ex] \ar[r,
+            shift right=0.75ex] &
+            \prod_{i, j \in I} \mathcal{F}(U_i \times_U U_j),
+        \end{tikzcd}
+    \]
+    is an equalizer in $\Set$. We refer to the category of sheaves on a site by
+    $\Sh(\mathcal{C}$. Moreover, any category $\mathcal{T}$ equipped with an
+    equivalence to $\Sh(\mathcal{D})$ for some site $\mathcal{D}$ is defined to
+    be a \textit{(Grothendieck) topos}.
+\end{definition}
+
+We now pivot to focus our attention on the category $\Sch$. Let $\mathcal{F}$ be
+a sheaf on $X$ a scheme. We say that $\mathcal{F}$ is \textit{quasicoherent} if,
+for each $\Spec(A) \subset X$, $\restr{\mathcal{F}}{\Spec(A)} \cong
+\widetilde{M}$ for an $A$-module $M$. It is \textit{coherent} if furthermore
+$M$ is finitely presented.
+
+The following proposition requires notions developed later, but it is best
+placed here for reference.
+
+\begin{proposition}
+    For any quasicoherent sheaf $\mathcal{F}$ on $S$, the functor
+    \begin{align*}
+        \mathcal{F}^a : \Sch/S &\to \Ab \\
+        (f : T \to S) &\mapsto \Gamma(T, f^{\ast}\mathcal{F})
+    \end{align*}
+    is an $\mathcal{O}$-module which satisfies the sheaf condition in the fpqc
+    topology.
+\end{proposition}
+
+\begin{proof}
+    See \cite[\href{https://stacks.math.columbia.edu/tag/03OG}{Tag
+        03OG}]{stacks-project}.
+\end{proof}
+
+\section{Morphisms in $\Sch$}
+
+\subsection{Finiteness properties}
+
+These definitions are standard in the literature. We collect them here for the
+reader's convenience.
+
+\begin{definition}
+    Let $f : X \to Y$ be a morphism of schemes.
+
+    \begin{enumerate}[(i)]
+        \item $f$ is \textit{locally of finite type} if there exists an open
+            cover $\{V_i\}$ of $Y$ such that $V_i = \Spec(B_i)$ and for each
+            $i$, $f^{-1}(V_i)$ can be covered by open sets $U_j = \Spec(A_j)$ so
+            that $A_j$ is a finitely generated $B_i$-algebra.
+
+        \item $f$ is \textit{of finite type} if there exists an open cover
+            $\{V_i\}$ of $Y$ such that $V_i = \Spec(B_i)$ and for each $i$,
+            $f^{-1}(V_i)$ can be covered by \textbf{finitely many} open sets
+            $U_j = \Spec(A_j)$ so that $A_j$ is a finite generated
+            $B_i$-algebra.
+
+        \item $f$ is \textit{finite} if there exists an open cover $\{V_i\}$ of
+            $Y$ such that $V_i = \Spec(B_i)$ and $f^{-1}(V_i) = \Spec(A_i)$ for
+            $A_i$ a finitely generated $B_i$-algebra.
+    \end{enumerate}
+\end{definition}
+
+\subsection{Smooth morphisms}
+
+\begin{definition}
+    A morphism $f : X \to Y$ is \textit{smooth of relative dimension $n$} if it
+    satifies either of the following equivalent conditions:
+    \begin{enumerate}[(i)]
+        \item \textbf{(Local Jacobian condition)}
+            There exist open covers $\{V_i\}$ of $Y$ and $\{U_i\}$ of $X$ such
+            that, for every $i$, there is a commutative diagram
+            \[
+                \begin{tikzcd}
+                    U_i \ar[d, "\restr{f}{U_i}"] \ar[r, "\sim"] &
+                    W \ar[d, "\restr{\rho}{W}"] \\
+                    V_i \ar[r, "\sim"] &
+                    \Spec(B)
+                \end{tikzcd}
+            \]
+            where there exists a morphism $\Spec(B[x_1, \dots, x_{n+r}]/(f_1, \dots
+            f_r)) \to \Spec(B)$ induced by the inclusion of the coefficient ring, and
+            $W$ is an open subscheme of $\Spec(B[x_1, \dots, x_{n+r}]/(f_1, \dots,
+            f_r))$. Moreover, we require the morphism $\rho$ to satisfy the
+            \textit{Jacobian condition}, the determinant of the matrix of
+            partials of $f_i$ with respect to the first $r$ variables of $B[x_1,
+            \dots, x_{n+r}$ is everywhere invertible, that is,
+            \[
+                \det \left( \frac{\partial f_i}{\partial x_j} \right)
+            \]
+            is a nowhere zero function on $W$.
+
+        \item \textbf{(Algebraic condition)} $f$ is locally of finite
+            presentation, $f$ is flat of relative dimension $n$, and
+            $\Omega_{X/Y} = 0$.
+
+    \end{enumerate}
+
+    We say a morphism is \textit{smooth} if it is smooth of some arbitrary
+    dimension $n$.
+\end{definition}
+
+\begin{theorem}
+    The above definitions are indeed equivalent.
+\end{theorem}
+
+\begin{proof}
+    Omitted. See \cite{vakil}.
+\end{proof}
+
+\begin{remark}
+    By either definition, smoothness is local on both the source and target. A
+    consequence of this is that the locus where a morphism is smooth is open!
+    Moreover, a smooth morphism is necessarily locally of finite presentation.
+\end{remark}
+
+\begin{proposition}
+    Let $f : X \to Y$ be a smooth morphism of relative dimension $n$ where $X$
+    and $Y$ are schemes over $S$. Then, the base-change $f \times Z : X \times Z
+    \to Y \times Z$ is smooth of relative dimension $n$.
+\end{proposition}
+
+\begin{proof}
+    We use the algebraic condition for smoothness. Each of the criteria (locally
+    of finite presentation, flat of dimension $n$, and vanishing of the sheaf of
+    differentials) is preserved by base change by arbitrary schemes.
+\end{proof}
+
+\begin{proposition}
+    Let $f : X \to Y$ be smooth of relative dimension $n$ and $f : Y \to Z$
+    smooth of relative dimension $m$. Then, $g \circ f$ is smooth of relative
+    dimension $n + m$.
+\end{proposition}
+
+\begin{proof}
+    Omitted. See \cite{vakil}.
+    \iffalse
+    The question is local, so we write $X = \Spec(A)$, $Y = \Spec(B)$, and $Z =
+    \Spec(C)$. Consider the following diagram
+    \[
+        \begin{tikzcd}
+            \Spec(A) \ar[r, "\sim"] \ar[d, "f"] &
+            W_B \ar[d, "\restr{\rho_B}{W_B}"] \\
+            \Spec(B) \ar[r, "\text{id}"] \ar[d, "\text{id}"] &
+            \Spec(B) \ar[d, "\rotatebox{90}{$\sim$}"] \\
+            \Spec(B) \ar[r, "\sim"] \ar[d, "g"] &
+            W_C \ar[d, "\restr{\rho_C}{W_C}"] \\
+            \Spec(C) \ar[r, "\text{id}"] &
+            \Spec(C)
+        \end{tikzcd}
+    \]
+    The upper and lower squares commute by hypothesis. The middle row commutes
+    by construction. The outer rectangle is the desired commutative square in
+    the definition of smoothness. To show the smoothness of $f \circ g$ is of
+    relative dimension $n + m$, we observe that the map $\rho_B \circ \rho_C$ is
+    induced by successive inclusions of coordinate rings $C \xhookrightarrow{}
+    C[x_1, \dots, x_{m + s}]/(f_1, \dots, f_s)$ and $B \xhookrightarrow{} B[y_1,
+    \dots, y_{n + r}]/(g_1, \dots, g_r)$.
+    \fi
+\end{proof}
+
+\subsection{Flat morphisms}
+
+\begin{displayquote}[David Mumford, \textit{The Red Book}]
+    ``The concept of flatness is a riddle that comes out of algebra, but which
+    technically is the answer to many prayers''
+\end{displayquote}
+
+\begin{definition}
+    A $R$-module $M$ is \textit{flat} if any of the following equivalent
+    conditions are satisfied:
+    \begin{enumerate}[(i)]
+        \item For $0 \to A \to B \to C \to 0$ exact, $0 \to A \otimes M \to B
+            \otimes M \to C \otimes M \to 0$ is exact.
+        \item The functor $M \otimes {-}$ takes monomorphisms to monomorphisms.
+        \item $\Tor^R_1(M, N) = 0$ for all $R$-modules $N$.
+        \item $\Tor^R_i(M, N) = 0$ for all $i > 0$ and $R$-modules $N$.
+    \end{enumerate}
+    These conditions say the functor $M \otimes {-}$ is \textit{exact}. We say
+    that $M$ is \textit{faithfully flat} if the converse to (i) holds.
+\end{definition}
+
+\begin{definition}
+    A morphism of rings $f : A \to B$ is \textit{flat} (resp. \textit{faithfully
+        flat}) if $B$ enjoys the structure of a flat (resp. faithfully flat)
+    $A$-module under $f$.
+\end{definition}
+
+\begin{definition}
+    Let $f : X \to Y$ be a morphism of schemes and $\mathcal{F}$ quasicoherent
+    on $X$. We say $\mathcal{F}$ is \textit{flat} over $Y$ at $x \in X$ if
+    $\mathcal{F}_x$ is flat as a $\mathcal{O}_{Y, f(x)}$ module (with the
+    structure morphism being given by $\mathcal{O}_{Y, f(x)} \to \mathcal{O}_{X,
+        x}$). The map $f$ is \textit{flat} at $x \in X$ if $\mathcal{O}_X$ is
+    flat over $Y$ at $x$. $f$ is \textit{flat} if it is flat at every point of
+    $X$. $f$ is \textit{faithfully flat} if it is flat and surjective.
+\end{definition}
+
+We now list helpful properties of flatness taken from \cite{MorphismNotes},
+without proof.
+
+\begin{enumerate}
+    \item The composition of two flat morphisms is flat.
+    \item The fibre product of two flat (resp. faithfully flat) morphisms remain
+        flat (resp. faithfully flat).
+    \item Flatness and faithful flatness are preserved by base change.
+    \item For $f$ finitely presented, flatness is an \textit{open} condition
+        (the set $\{x \in X \mid f \text{ is flat at } x \}$ is open, although
+        possibly empty).
+    \item Open immersions are flat (they induced isomorphisms on stalks).
+    \item The pullback functor $\mathit{QCoh}(Y) \to \mathit{QCoh}(X)$ is
+        exact if induced by a flat morphism.
+    \item Flatness and locally of finite presentation imply open.
+    \item \textbf{(Generic flatness)} If $f : X \to Y$ is of finite type and $Y$
+        is integral, then there is a nonempty open subset $U \subset Y$ such
+        that the restrict of $f$ to $f^{-1}(U)$ is flat.
+    \item \textbf{(Dimension of fibers)} If $f : X \to Y$ is flat at $x$, then
+        \[
+            \dim \mathcal{O}_{X, x} = \dim \mathcal{O}_{Y, f(x)} + \dim
+            f^{-1}(f(x)).
+        \]
+    \item \textbf{(Stalks pushforward)} If $f : X \to Y$ is flat, then
+        $f(\mathcal{O}_{X, x}) = \mathcal{O}_{Y, f(x)}$.
+
+    \item \textbf{(Topological quotient)} If $f : X \to Y$ is faithfully flat,
+        then the topology on $Y$ is the quotient topology of $X$ induced by $f$.
+\end{enumerate}
+
+\begin{example}
+    We now give a collection of examples of morphisms which are not flat. The
+    last two are taken from \cite{MorphismNotes}.
+    \begin{enumerate}
+        \item Every blowup is a nonexample because the fibers are not
+            equidimensional.
+
+        \item Open immersions are flat because they induce isomorphisms on
+            stalks.
+
+        \item Closed immersions are never flat unless they are also open
+            immersions (so of the form $X \to X \amalg Y$, the inclusion of a
+            component).
+
+        \item Coverings of the form $\Spec(R^n) \to \Spec(R)$ because free
+            modules are injective so $\Tor^R_i(R^n, R) = 0$ for $i > 0$.
+
+        \item Either coordinate projection $\mathbb{A}^2 \to \mathbb{A}$ is
+            faithfully flat as $A[x_1, \dots, x_n]$ is flat over $A$.
+
+        \item The normalization $\Spec(k[t^2, t^3]) \to \mathbb{A}^1$ is not
+            flat, although it is surjective.
+    \end{enumerate}
+\end{example}
+
+\subsection{Unramified morphisms}
+
+\begin{definition}
+    A morphism of local rings $f : (A, \mathfrak{m}_A) \to (B, \mathfrak{m}_B)$
+    is \textit{unramified} if the induced extension of fields is separable.
+\end{definition}
+
+\begin{definition}
+    A morphism of schemes $f : X \to Y$ is \textit{unramified} if the induced
+    map on stalks is unramified as a morphism of local rings.
+\end{definition}
+
+
+
+\subsection{\'Etale morphisms}
+
+The underlying problem with the Zariski topology is that there are simply not
+enough open sets. For instance, every two paths $p_1, p_2 : [0, 1] \to
+\mathbb{P}^1_{\mathbb{C}}$ are homotopic, but certainly the same is not true for
+$\mathbb{P}_\mathbb{C}^1(\mathbb{C})$. To resolve this, we require a notion of
+\textit{\'etale open sets}, which are essentially \'etale morphisms.
+
+\'Etale morphisms are to the algebraic category as submersions are to the
+differentiable one.
+
+\begin{definition}
+    Let $f : X \to Y$ be a morphism of schemes. We say $f$ is \text{\'etale} if
+    it satifies one of two equivalent properties:
+    \begin{enumerate}[(i)]
+        \item \textbf{(Geometric definition)} $f$ is smooth of relative
+            dimension zero.
+
+        \item \textbf{(Algebraic definition)} $f$ is flat and unramified.
+    \end{enumerate}
+\end{definition}
+
+There are many more definitions. For instance, one can define a class of
+\textit{formally \'etale} morphisms via deformations and say an \'etale map is a
+formally \'etale map subject to finiteness conditions. For varieties over a
+closed field, one may say $f : V \to W$ is \'etale if it induces isomorphisms on
+the Zariski tangent space of each point.
+
+It is nonobvious that the given definitions are equivalent. The following
+proposition proves it.
+
+\begin{proposition}
+    Let $f : X \to Y$ be a morphism of schemes. Then, the following are
+    equivalent.
+    \begin{enumerate}[(i)]
+        \item $f$ is smooth of relative dimension zero.
+        \item $f$ is flat and unramified.
+    \end{enumerate}
+\end{proposition}
+
+The easiest case to classify are \'etale morphisms to a field.
+
+\begin{theorem}
+    Suppose $f : \Spec(S) \to \Spec(k)$ is \'etale. Then, $R \cong k_1 \times
+    \cdots \times k_n$ where each $k_i$ is a separable finite field extensions
+    of $k$.
+\end{theorem}
+
+\section{Topologies on $\Sch$}
+
+We simply give the definitions and provide a few propositions that guide the
+reader through the idea of the relation of the topology to the others in the
+section.
+
+Here is the general picture. The arrows correspond to increasing coarseness.
+\[
+    \begin{tikzcd}
+        \text{canonical} \ar[r] &
+        \text{fpqc} \ar[r] &
+        \text{fppf} \ar[r] &
+        \text{\'etale} \ar[r] &
+        \text{Zariski}
+    \end{tikzcd}
+\]
+
+The canoncial topology is the finest topology for which the functor of points
+for a scheme $h_X$ is a sheaf. A topology is deemed \textit{subcanonical} if it
+is coarser than the canoncial topology.
+
+\subsection{The Zariski topology}
+
+This is the most well-known, and it is strictly a formalization of the standard
+point-set topoloy on a scheme. We define it anyways.
+
+\begin{definition}
+    A \textit{Zariski covering} of a scheme $U$ is a family of morphisms of
+    schemes with fixed target $\{\phi_i : U_i \to U\}$ such that
+    \begin{enumerate}
+        \item Each $\phi_i$ is an open immersion.
+        \item The family set-theoretically covers $U$, i.e. $\bigcup \phi_i(U_i)
+            = U$.
+    \end{enumerate}
+\end{definition}
+
+The Zariski topology is the most coarse topology we will define.
+
+\begin{lemma}
+    For any Zariski covering $\{\phi_i : U_i \to U\}$ for $U$ affine, there
+    exists a Zariski covering $\{\psi_j : T_j \to U\}$ which is finite and
+    refines the family $\{\phi_i\}$. Furthermore, each $T_j$ is a standard open
+    of $U$.
+\end{lemma}
+
+\begin{proof}
+    Affine schemes are quasicompact and the standard opens are a base for the
+    topology.
+\end{proof}
+
+\begin{proof}
+    The functor $(\Aff/S)_{\Zar} \to (\Sch/S)_{\Zar}$ for a scheme $S$ induces an
+    equivalence of topoi $\Sh((\Aff/S)_{\Zar})$ and $\Sh((\Sch/S)_{\Zar})$.
+\end{proof}
+
+\begin{proof}
+    Omitted. See \cite[\href{https://stacks.math.columbia.edu/tag/020W}{Tag
+        020W}]{stacks-project}
+\end{proof}
+
+\subsection{The fpqc topology}
+
+\begin{definition}
+    A \textit{fpqc} covering is a family $\{\phi_i : U_i \to U\}_{i \in I}$ of
+    morphisms of schemes of fixed target which satifies:
+    \begin{enumerate}
+        \item Each $\phi_i$ is flat.
+        \item For each affine open $T \subset U$, there exists a $n > 1$ and a
+            map $a : [n] \to I$ and affine opens $V_j \subset U_{a(j)}$ so that
+            \[
+                \bigcup_{j=1}^n \phi_{a(j)}(V_j) = U.
+            \]
+    \end{enumerate}
+    In particular, this implies the usual covering condition that $\bigcup_{i
+        \in I} \phi_i(U_i) = U$.
+\end{definition}
+
+\subsection{The \'etale topology}
+
+\begin{definition}
+    An \textit{\'etale covering} of a scheme $U$ is a family of morphisms of
+    schemes with fixed target $\{\phi_i : U_i \to U \}$ such that
+
+    \begin{enumerate}
+        \item Each $\phi_i$ is etale.
+        \item The family set-theoretically covers $U$, i.e. $\bigcup
+            \phi_i(U_i) = U$.
+    \end{enumerate}
+\end{definition}
+
+\begin{proposition}
+    For a scheme $X$, the collection of families of \'etale coverings endow the
+    following categories the structure of a site:
+
+    \begin{enumerate}
+        \item $X_\text{\'et}$.
+        \item $(\Sch/X)_\text{\'et}$.
+    \end{enumerate}
+\end{proposition}
+
+\begin{proof}
+    Recall that $X_\text{\'et}$ (the \textit{small \'etale site}) is the
+    category whose objects are \'etale morphisms to $X$. It is a fact that any
+    triangle of schemes whose structure morphisms are \'etale is automatically
+    an \'etale triangle (see \cite{stacks-project} for a proof). We check the
+    three conditions for a Grothendieck pretology:
+    \begin{enumerate}
+        \item Isomorphisms are indeed \'etale.
+        \item Compositions of \'etale morphisms are \'etale.
+        \item The base change of an \'etale morphism is \'etale.
+    \end{enumerate}
+
+    The proof for the big \'etale site over $X$ is exactly the same.
+\end{proof}
+
+The following lemma implies the \'etale topology is subcanonical.
+
+\begin{lemma}
+    \'Etale coverings are fpqc.
+\end{lemma}
+
+\begin{proof}
+    \'Etale morphisms are flat, and an \'etale covering is surjective on its
+    target, so the first condition is satisfies.
+
+    To check the quasicompactness property, let $V \subset U$ be an affine open,
+    and let $V_{ij}$ be a covering of $\phi_i^{-1}(V)$ for some affine opens
+    $V_{ij} \subset U_i$. \'Etale morphisms are open, so
+    \[
+        \bigcup_{i \in I} \bigcup_{j \in J} \phi(V_{ij})
+    \]
+    is an open covering of $V$. By the qc assumption on $V$, this covering has a
+    finite refinement.
+\end{proof}
+
+\subsection{The fppf topology}
+
+\begin{definition}
+    A \textit{fppf covering} of a scheme $U$ is a family of morphisms of schemes
+    with fixed target $\{\phi_i : U_i \to U\}$ such that
+    \begin{enumerate}
+        \item Each $\phi_i$ is flat.
+        \item Each $\phi_i$ is locally of finite presentation.
+        \item The family set theoretically covers $U$, i.e. $\bigcup \phi_i(U_i)
+            = U$.
+    \end{enumerate}
+\end{definition}
+
+\begin{proposition}
+    The fppf coverings satisfy the definition of a pretopology.
+\end{proposition}
+
+\begin{proposition}
+    Any Zariski or \'Etale coveing is an fppf covering.
+\end{proposition}
+
+\begin{proof}
+    Clear from the definitions (open immersions are flat and locally of finite
+    presentation because they are local isomorphisms, \'etale morphisms are flat
+    and locally of finite presentation by definition).
+\end{proof}
+
+\section{Cohomology}
+
+\subsection{Derived functors}
+
+\begin{definition}
+    Let $\mathcal{F} : \mathbf{A} \to \mathbf{B}$ be a functor. Suppose that
+    \begin{enumerate}[(i)]
+        \item $\mathcal{A}$ and $\mathbf{B}$ are abelian.
+        \item For every $X \in \mathbf{A}$, there is an injective object $I$ and
+            a monomorphism $X \to I$.
+        \item $\mathcal{F}$ is left exact.
+    \end{enumerate}
+    Then, the \textit{$i$th derived functor} of $\mathcal{F}$, written $R^i
+    \mathcal{F}$, is the $i$th cohomology group of any complex of the form
+    \[
+        0 \to I^1 \to I^2 \to \cdots
+    \]
+    where $X \to I^{\bullet}$ is an injective resolution of $X$.
+\end{definition}
+
+\begin{proposition}
+    The definition of the functors $R^i \mathcal{F}$ is independent of the
+    choice of injective resolution.
+\end{proposition}
+
+\begin{lemma}
+    Given a short exact sequence $0 \to A \to B \to C \to 0$, there is a long
+    exact sequence
+    \[
+        \begin{tikzcd}
+            0 \ar[r] &
+            F(A) \ar[r] &
+            F(B) \ar[r] &
+            F(C) \ar[dll] \\
+            &
+            R^1F(A) \ar[r] &
+            R^1F(B) \ar[r] &
+            R^1F(C) \ar[dll] \\
+            &
+            R^2F(A) \ar[r] &
+            R^2F(B) \ar[r] &
+            R^2F(C) \ar[r] & \cdots
+        \end{tikzcd}
+    \]
+\end{lemma}
+
+\begin{proof}
+    Take an injective resolution of $A, B, C$ and apply the snake lemma.
+\end{proof}
+
+\subsection{Sheaf cohomology}
+
+Fix a site $\mathcal{C}$ over the category $\Sch$ and consider the category of
+abelian sheaves on $\mathcal{C}$. For $\mathcal{F} \in \Ab(\mathcal{C})$, we
+define the \textit{$i$th sheaf cohomology of $\mathcal{F}$}, $H^i({-},
+\mathcal{F})$ to be the $i$th right derived functor of $\Gamma({-},
+\mathcal{F})$. Recall that $\Gamma({-}, \mathcal{F})$ is the global sections
+functor for $\mathcal{F}$ on a covering $U$.
+
+For this definition to make any sense, we require the following theorem.
+
+\begin{theorem}
+    The category of abelian sheaves on a site is abelian, and has enough
+    injectives.
+\end{theorem}
+
+\begin{proof}
+    See \cite[\href{https://stacks.math.columbia.edu/tag/03NT}{Tag
+        03NT}]{stacks-project}.
+\end{proof}
+
+\subsection{\v{C}ech cohomology}
+
+Unfortunately, (derived functor) sheaf cohomology is not easy to compute in
+general. In this section, we introduce an alternative cohomology theory, which
+is (sometimes) more computable and (sometimes) agrees with sheaf cohomology. All
+material in this section follows the exposition in
+\cite[\href{https://stacks.math.columbia.edu/tag/03OK}{Tag
+    03OK}]{stacks-project}
+
+\begin{definition}
+    Let $\mathbf{C}$ be a category, $\mathcal{U} = \{U_i \to U\}_{i \in I}$ a
+    family of morphisms with fixed target, and $\mathcal{F}$ an abelian
+    presheaf. The \textit{\v{C}ech complex $\check{C}(\mathcal{U},
+        \mathcal{F})$} by
+    \[
+        \prod_{i_0 \in I} \mathcal{F}(U_{i_0})
+        \to \prod_{i_0, i_1\in I} \mathcal{F}(U_{i_0} \times_U U_{i_1})
+        \to \prod_{i_0, i_1, i_2 \in I} \mathcal{F}(U_{i_0} \times_U U_{i_1}
+        \times_U U_{i_2}) \to \cdots
+    \]
+    where the first term is in degree $0$. We allow the case $i_0 = i_1$, etc.
+
+    The \textit{\v{C}ech cohomology groups} are defined by
+    \[
+        \check{H}^p(\mathcal{U}, \mathcal{F}) := H^p(\check{C}(\mathcal{U},
+        \mathcal{F})).
+    \]
+\end{definition}
+
+After some work, it is possible to show the following theorem.
+
+\begin{theorem}
+    The functors $\check{H}^p(\mathcal{U}, {-})$ for $p > 1$ are the right
+    derived functors $\check{H}^0(\mathcal{U}, {-})$.
+\end{theorem}
+
+\begin{proof}[Outline]
+    Demonstrate the \v{C}ech cohomology is a $\delta$-functor. Argue that
+    $\check{H}^p(\mathcal{U}, \mathcal{I}) = 0$ for all $p > 0$ and injective
+    $\mathcal{I}$. Invoke Grothendieck's result that effaceable
+    $\delta$-functors are unique up to unique isomorphism, and that the derived
+    functor is effeceable.
+\end{proof}
+
+We recall that there is an adjunction between the categories $\Ab(\mathcal{C})$
+and $\PAb(\mathcal{C})$ given by sheafification on the left and the forgetful
+functor on the right. This, purely formally, gives the following lemma.
+
+\begin{lemma}
+    The forgetful functor $\Ab(\mathcal{C}) \to \PAb(\mathcal{C})$ transforms
+    injectives to injectives.
+\end{lemma}
+
+\begin{proof}
+    As do all functors which possess a left adjoint.
+\end{proof}
+
+\begin{theorem}
+    Let $\mathcal{C}$ be a site. For any covering $\mathcal{U} = \{U_i \to
+    U\}_{i \in I}$ and any abelian sheaf $\mathcal{F}$ on $\mathcal{C}$ there
+    exists a spectral sequence
+    \[
+        E_2^{p, q} = \check{H}^p(\mathcal{U}, \underline{H}^q(\mathcal{F}))
+        \Rightarrow H^{p+q}(U, \mathcal{F}),
+    \]
+    where $\underline{H}^q(\mathcal{F})$ is the abelian presheaf $v \mapsto
+    H^q(V, \mathcal{F})$.
+\end{theorem}
+
+\begin{proof}
+    See \cite[\href{https://stacks.math.columbia.edu/tag/03OW}{Tag
+        03OW}]{stacks-project}.
+\end{proof}
+
+\begin{remark}
+    This spectral sequence is the Grothendieck spectral sequence corresponding
+    to the composition
+    \[
+        \begin{tikzcd}
+            \Ab(\mathcal{C}) \ar[r] &
+            \PAb(\mathcal{C}) \ar[r, "\check{H}^0"] &
+            \Ab.
+        \end{tikzcd}
+    \]
+\end{remark}
+
+\subsection{Cohomology of quasicoherent sheaves}
+
+For better or for worse, the topologies we have introduced thus far cannot be
+distinguished by the cohomology of $\mathcal{F}$ quasicoherent on $X$ a scheme.
+
+As is usual by now, we follow quite closely the exposition in the Stacks
+project. The following lemma allows us to reduce the analysis of a covering to a
+single standard affine cover.
+
+\begin{lemma}
+    Let $\tau \in \{\text{fppf}, \text{\'etale}, \text{Zariski}\}$. Let $S$ be a
+    scheme and $\mathcal{F}$ an abelian sheaf on $(\Sch/S)_\tau$, and let
+    $\mathcal{U} = \{ U_i \to U\}$ be a standard $\tau$-covering of this site.
+    Let $V = \coprod_{i \in I} U_i$. Then,
+    \begin{enumerate}
+        \item $V$ is affine.
+        \item $\mathcal{V} = \{V \to U\}$ is a $\tau$-covering and an fpqc
+            covering.
+        \item The \v{C}ech complexes $\check{C}^{\bullet}(\mathcal{U},
+            \mathcal{F})$ and $\check{C}^{\bullet}(\mathcal{V}, \mathcal{F})$
+            agree.
+    \end{enumerate}
+\end{lemma}
+
+\begin{lemma}
+    Let $\mathcal{C}$ a site, $\mathcal{F}$ an abelian sheaf, $U$ an object of
+    $\mathcal{C}$, $p \in \mathbb{Z}_{> 0}$. For all $\xi \in H^q(U,
+    \mathcal{F})$, there exists a covering $\mathcal{U} = \{U_i \to U\}$ of
+    $U$ so that $\restr{\xi}{U_i} = 0$ for all $i$.
+\end{lemma}
+
+We need one final lemma taken from faithfully flat descent.
+
+\begin{lemma}
+    If $A \to B$ is faithfully flat and $M$ is an $A$-module, then the complex
+    $(B/A)_{\bullet} \otimes_A M$ is exact in positive degrees, and
+    $H^0((B/A)_{\bullet} \otimes_A M) = M$.
+\end{lemma}
+
+Now, the main theorem. We present the proof in a way slightly reversed from the
+Stacks project, in order to isolate the technical aspects for an inexperienced
+reader (and, indeed, author). In particular, we have split the proof into a
+lemma and a theorem.
+
+\begin{lemma}
+    Let $S$ be a scheme, $\mathcal{F}$ a quasicoherent $\mathcal{O}$-module. Let
+    $\mathcal{C}$ be the big $\tau$-site over $S$, $(\Sch/S)_\tau$ for $\tau \in
+    \{\text{fppf}, \text{\'etale}, \text{Zariski}\}$. For an object $f : U \to
+    S$ in $\mathcal{C}$, $U$ affine, we have that
+    \[
+        H^p_{\tau}(U, \mathcal{F}^a) = 0,
+    \]
+    for $p > 0$.
+\end{lemma}
+
+\begin{proof}
+    Begin with the case $p=1$. Choose a class $\xi \in H^1_\tau(U,
+    \mathcal{F}^a)$. By Lemma $6.11$, there exists a covering $\mathcal{U} =
+    \{U_i \to U\}$ so that $\restr{\xi}{U_i} = 0$. We may refine the cover so
+    that it is a standard $\tau$-covering.
+
+    The spectral sequence from Theorem $6.8$ shows that $\xi \in
+    \check{H}^1(\mathcal{U}, \mathcal{F}^a)$. Lemma $6.10$ implies that, for the
+    cover $\mathcal{V} = \{\coprod_{i \in I} U_i \to U\}$,
+    $\check{H}^1(\mathcal{U}, \mathcal{F}^a) = \check{H}^1(\mathcal{V},
+    \mathcal{F}^a)$. But, the cover $\mathcal{V}$ is of the form $\{\Spec(B) \to
+    \Spec(A)\}$, so $f^{\ast}\mathcal{F} = \widetilde{M}$ for an $A$-module $M$.
+    The \v{C}ech complex $\check{C}^\bullet(\mathcal{V}, \mathcal{F})$ is
+    precisely $(B/A)_{\bullet} \otimes_A M$, however Lemma $6.11$ implies this
+    complex has no higher cohomology.
+
+    Now, the case $p>1$. We proceed essentially analogously. Choose $\xi \in
+    H^p_\tau(U, \mathcal{F}^a)$. We may choose a standard $\tau$-covering
+    $\mathcal{U}$ for which $\xi$ locally vanishes. The intersections $U_{i_0}
+    \times_U \cdots \times_U U_{i_p}$ are affine, so by induction,
+    $\check{H}^p(\mathcal{U}, \underline{H}^q(\mathcal{F}^a)) = 0$ for $0 < q <
+    p$. This implies $\xi$ is the image of a $\check{\xi} \in
+    \check{H}^p(\mathcal{U}, \mathcal{F}^a)$. Finally, replace $\mathcal{U}$
+    with $\mathcal{V}$ as in the $p=1$ case, reduce to the complex of
+    $A$-modules, and conclude that it has zero higher cohomology. Thus,
+    $\check{\xi} = 0$ and moreover $\xi = 0$.
+\end{proof}
+
+\begin{theorem}
+    Let $S$ be a scheme, $\mathcal{F}$ a quasicoherent $\mathcal{O}$-module. Let
+    $\mathcal{C}$ be the big $\tau$-site over $S$, $(\Sch/S)_\tau$ for $\tau \in
+    \{\text{fppf}, \text{\'etale}, \text{Zariski}\}$. Then,
+    \[
+        H^p(S, \mathcal{F}) = H^p_{\tau}(S, \mathcal{F}^a),
+    \]
+    for all $p \geq 0$.
+\end{theorem}
+
+\begin{proof}
+    Let $f : U \to S$ be an element of the site $\mathcal{C}$. We need to show
+    that $H^p(U, f^{\ast}\mathcal{F}) = H_{\tau}^p(U, \mathcal{F}^a)$. The case
+    $p=0$ is a definition. For the case $p>1$, we invoke the previous lemma.
+
+    Suppose $U$ is separated. We may choose an affine covering of $U$. This
+    induces a fpqc covering $\mathcal{U}$. The intersections $U_{i_0} \times_U
+    \cdots \times_U U_{i_p}$ are all affine as $U$ is separated. Thus, the rows
+    of the spectral sequence in Theorem $6.8$ are all identically zero by the
+    previous lemma, except the zeroeth row. So, the theorem implies
+    \[
+        H^p_\tau(U, \mathcal{F}^a) = \check{H}^p(\mathcal{U}, \mathcal{F}^a)
+        = \check{H}^p(\mathcal{U}, \mathcal{F}),
+    \]
+    and the last group is famously equal to $H^p(U, \mathcal{F})$. There is some
+    more work to extend to the nonseparated case, which we will not cover.
+\end{proof}
+
+\subsection{Analytic comparison theorem}
+
+We simply state this amazing result.
+
+\begin{theorem}
+    Let $X$ be a nonsingular variety over $\mathbb{C}$. For any finite abelian
+    group $\Lambda$ and $r \geq 0$, we have
+    \[
+        H^{r}(X_{\text{\'et}}, \Lambda) \cong H^r(X(\mathbb{C}), \Lambda),
+    \]
+    where we write $\Lambda$ for the constant sheaf with value $\Lambda$.
+\end{theorem}
+
+\section{Set theory}
+
+This section is just a collection of interesting facts about the material
+previously presented.
+
+\subsection{A fpqc presheaf which may not be sheafified}
+
+Unfortunately, with all the power that the general theory of sites and topoi
+allow, some (allegedly) simple properties that one would expect a presheaf to
+enjoy are not possible. We give an example of an fpqc sheaf for which there is
+no sheafification. This example is taken from \cite{fpqc-sheaf}.
+
+\begin{example}
+    Fix a commutative ring $R$. We work in the relative category $\Ring/R$. For
+    a prime ideal $\mathfrak{p} \in \Spec(A)$ for an $R$-algebra $A$, let
+    $\kappa(\mathfrak{p})$ denote the fraction field of $A/\mathfrak{p}$. We
+    define the following functor:
+    \[
+        \mathcal{F}(A) = \bigg\{ f : \Spec(A) \to \nu \mid \text{$f$ is locally
+                constant and $\nu < \abs{\kappa(\mathfrak{p})}$ for all
+                $\mathfrak{p} \in \Spec(A)$.} \bigg\}.
+    \]
+    Actually, we only know it is a map of underlying categorys $\Ring/R \to
+    \Set$. However, if $f : A \to B$ is morphism of
+    $R$-algebras, then $f^{-1}(\mathfrak{q})$ is a prime of $A$ which satisfies
+    $\abs{\kappa(f^{-1}(\mathfrak{q}))} \leq \abs{\kappa(\mathfrak{q})}$, so the
+    mapping is functorial.
+
+    Let $\eta$ be any cardinal and let
+    \[
+        \mathcal{L}_{\eta}(A) = \bigg\{ f : \Spec(A) \to \eta \mid \text{$f$ is
+            locally constant.} \bigg\}.
+    \]
+    Indeed, we immediately verify this is the sheaf $h_X = \Hom({-}, X)$ where
+    $X = \coprod_{i \in \eta} \Spec(R)$. Consider a map which sends elements of
+    a cardinal $\mu$ less than $\eta$ to themselves, otherwise the elements are
+    mapped to zero. This gives a natural transformation $\mathcal{F} \to
+    \mathcal{L}_{\eta}$. Thus, $\mathcal{F}$ could be sheafified to
+    $\mathcal{G}$, then we would have a diagram of functors
+    \[
+        \begin{tikzcd}
+            & \mathcal{G} \ar[dr] \\
+            \mathcal{F} \ar[ur] \ar[rr] & & \mathcal{L}_{\eta}
+        \end{tikzcd}
+    \]
+    We now note that given \textit{fixed} $A \in \Ring/R$, there exists a
+    cardinal $\lambda$ for which $\abs{\kappa(\mathfrak{p})} < \lambda$ for all
+    $\mathfrak{p} \in A$. Thus, the induced morphism $\mathcal{F}(A) \to
+    \mathcal{L}_{\lambda}(A)$ is injective. But, and this is the crucial
+    point, this implies $\mathcal{F}(A) \to \mathcal{G}(A)$ must be injective
+    \textit{for every $A \in \Ring/R$!} From this we will derive a
+    contradiction.
+
+    Let $K/k$ be an extension of fields, so $R=k$. This is an fpqc covering of
+    $k$. By the sheaf property, we have that the equalizer of
+    \[
+        \begin{tikzcd}
+            \mathcal{F}(K) \ar[r, shift left=0.75ex] \ar[r, shift right=0.75ex]
+            & \mathcal{F}(K \otimes_k K)
+        \end{tikzcd}
+    \]
+    must inject into $\mathcal{G}(k)$. But, $\Spec(K)$ is a point, so the two
+    arrows in the equalizer are the same, and $\mathcal{F}(K)$ is the equalizer.
+    We have an injection
+    \[
+        \mathcal{F}(K) \xhookrightarrow{\quad} \mathcal{G}(k),
+    \]
+    but each object has the same cardinality as its argument field. We may
+    choose an extension $K/k$ of arbitrary size, which is absurd.
+\end{example}
+
+\begin{remark}
+    This example fails if we even move to the fppf topology, as $K/k$ is not an
+    fppf covering for arbitrarily large extensions $K$.
+\end{remark}
+
+\subsection{Grothendieck universes}
+
+\begin{definition}
+    A \textit{Grothendieck universe} is a set $V$ so that
+    \begin{enumerate}
+        \item If $x \in V$ and $y \in x$, then $y \in x$.
+        \item If $x, y \in V$, then $\{x, y\} \in V$.
+        \item If $x \in U$, then $2^x \in U$.
+        \item If $I \in V$ and $\{x_i\}_{i \in I}$ is a collection of elements
+            of $V$, then $\bigcup_{i \in I} x_i \in V$.
+    \end{enumerate}
+\end{definition}
+
+\begin{definition}
+    A cardinal $\kappa$ is \textit{inaccessible} if there is no sequence of
+    cardinal operations on smaller cardinals which reach $\kappa$. It is
+    \textit{strongly inaccessible} if $\alpha < \kappa$ implies $2^{\alpha} <
+    \kappa$ and any sum of less than $\kappa$ cardinals below $\kappa$ is less
+    than $\kappa$.
+\end{definition}
+
+We have the following (amazing) fact.
+
+\begin{theorem}
+    The following statements are equivalent.
+    \begin{enumerate}[(i)]
+        \item For all $x$ a set, there exists a universe $V$ so that $x \in V$.
+        \item For each cardinal $\kappa$, there is a strongly inaccessible
+            cardinal greater than $\kappa$.
+    \end{enumerate}
+\end{theorem}
+
+\begin{proposition}
+    Let $\kappa$ be a strongly inaccessible cardinal. Then, $V_{\kappa} = \{x
+    \text{ a set} \mid \abs{x} < \kappa\}$ is a Grothendieck universe.
+\end{proposition}
+
+\begin{proposition}
+    Let $\kappa$ be a strongly inaccessible cardinal. Fix the universe
+    $V_{\kappa}$. In the definition of the functor $\mathcal{F}$, restrict the
+    codomain of locally constant functions to be cardinals less than $\kappa$.
+    Then, $\mathcal{F}$ may be sheafified, and its sheaf is
+    $\mathcal{L}_{\kappa}$.
+\end{proposition}
+
+\begin{proof}
+    This is straightfoward from the definitions.
+\end{proof}
+
+\subsection{Lawvere-Tierney topologies}
+
+This section is a stub---it will later be developed to address Lawvere-Tierney
+topologies on a Grothendieck topos.
+
+Classically, we may identify the set of subobjects of an object of
+$\mathbf{Set}$ as the collection of monomorphisms $\{\phi : Z \to X\}$ modulo
+isomorphism. But, this is in some sense, a second-order classification of
+subobjects. We would like to be able to classify them in the first-order
+language of the category itself (without having to invoke the notion of an
+equivalence relation). In $\mathbf{Set}$, for each subobject $Z \subset X$,
+there is a map $\chi_Z : X \to \{0, 1\}$ which is zero outside of $Z$ and one
+inside of it. Thus, we may identify the subobjects of $X$ with the set $\Hom(X,
+\{0, 1\})$. We recover the classical notion of a subobject in $\mathbf{Set}$ by
+taking the following fibre product:
+
+\begin{center}
+    \begin{tikzcd}
+        Z \ar[d, dashed] \ar[r, dashed] & \{1\} \ar[d, "1"] \\
+        X \ar[r, "\chi_Z"] & \{0, 1\}
+    \end{tikzcd}
+\end{center}
+
+We generalize this in the following way.
+
+\begin{definition}
+    Given a category $\mathcal{C}$ with finite limits, a \textit{subobject
+        classifier} is an object $\Omega$ with a distinguished monomorphism
+    $\text{true} : \mathbf{1} \to \Omega$, such that for every monomorphism $f :
+    Z \to X$, there exists a unique $\chi_Z : X \to \Omega$ which allows $f$ to
+    arise as the following fibre product:
+    \begin{center}
+        \begin{tikzcd}
+            Z \ar[d, dashed, "f"] \ar[r, dashed] & \mathbf{1} \ar[d, "\text{true}"] \\
+            X \ar[r, "\chi_Z"] & \Omega
+        \end{tikzcd}
+    \end{center}
+\end{definition}
+
+This definition is justified in $\mathbf{Set}$ by the previous discussion. For
+more generate $\mathcal{C}$, we have the following proposition.
+
+\begin{proposition}
+    Suppose that $\mathcal{C}$ has finite limits and is locally small. Then,
+    $\mathcal{C}$ has a subobject classifier if and only if the functor
+    \begin{align*}
+        \Sub : \mathcal{C} &\to \mathbf{Set} \\
+        X &\mapsto \{Z \xhookrightarrow{} Z \},
+    \end{align*}
+    is representable. In this instance, $\Sub(-)$ is represented by the
+    subobject classifier.
+\end{proposition}
+
+\begin{proof}
+    By definition, the existence of a subobject classifier gives a bijection
+    \[
+        \theta_X : \Sub(X) \cong \Hom(X, \Omega)
+    \]
+    defined by sending a subobject $Z$ to the characteristic function $\chi_Z$
+    induced by pullback. To show that this is indeed natural, consider a
+    morphism $f : X \to Y$ and subobjects $Z \subset X$, $W \subset Y$. The
+    functor $\Sub(-)$ is contravariant in pullbacks, so by considering the
+    following diagram,
+    \begin{center}
+        \begin{tikzcd}
+            Z \ar[d, hook] \ar[r] &
+            W \ar[d, hook] \ar[r] &
+            \mathbf{1} \ar[d, "\text{true}"] \\
+
+
+            X \ar[r, "f"] &
+            Y \ar[r] &
+            \Omega
+        \end{tikzcd}
+    \end{center}
+    we can observe (by the pasting law for pullbacks) that $\theta_X$ is indeed
+    natural.
+
+    Now, suppose we are given such a $\theta_X$ for all $X \in \mathcal{C}$,
+    natural in $X$ with representing object $\Theta$. In particular, we have
+    that $\Sub(\Omega) \cong \Hom(\Omega, \Omega)$, so there is a unique
+    subobject $\Omega_0$ corresponding to the identity on $\Omega$. Now,
+    consider any map $f : X \to \Omega$. By naturality of $\theta_X$, we have a
+    diagram
+    \[
+        \begin{tikzcd}
+            \Sub(\Omega) \ar[r, "\theta_\Omega"] \ar[d, "\Sub(f)"] &
+            \Hom(\Omega, \Omega) \ar[d, "h_\Omega(f)"] \\
+            \Sub(X) \ar[r, "\theta_X"] &
+            \Hom(X, \Omega)
+        \end{tikzcd}
+        \quad\quad
+        \begin{tikzcd}
+            \Omega_0 \ar[d, mapsto] \ar[r, mapsto] & 1 \ar[d, mapsto] \\
+            S \ar[r, mapsto] & \phi
+        \end{tikzcd}
+    \]
+    for some $\phi$. In particular, for any subobject $S \subset X$, we can
+    write $S = \Sub(f)(\Omega_0)$, and indeed, recover it as a pullback of
+    $\Omega_0$ along some uniquely specified $\phi$. This produces the diagram:
+    \[
+        \begin{tikzcd}
+            S \ar[r, dashed] \ar[d, dashed] & \Omega_0 \ar[d] \\
+            X \ar[r, "\phi"] & \Omega
+        \end{tikzcd}
+    \]
+    Thus, if we can demonstrate that $\Omega_0$ is terminal in $\mathcal{C}$,
+    then we are finished. In the above diagram, let $S = X$. Then, we achieve a
+    map $f_1 : X \to \Omega_0$. Suppose there were another map $f_2 : X \to
+    \Omega_0$. Then, the square equipped with that map in its top horizontal row
+    would still be (trivially) a pullback diagram. If we label the monic
+    $\Omega_0 \to \Omega$ by $t$, then both $t \circ f_1$ and $t \circ f_2$ must
+    equal $\phi$ by the uniqueness of $\phi$. But, $t$ is monic, so $f_1 = f_2$.
+    This construction gives a unique morphism $X \to \Omega_0$ for all $X \in
+    \mathcal{C}$, so it is terminal. The morphism $t$ is the so-called
+    ``$\text{true}$'' morphism.
+\end{proof}
+
+\begin{corollary}
+    Suppose $\mathcal{C}$ has finite limits, is locally small, and enjoys a
+    subobject classifier. Then, $\mathcal{C}$ is well-powered.
+\end{corollary}
+
+
+
+\bibliography{bibliography}
+\bibliographystyle{ieeetr}
+
+\end{document}
